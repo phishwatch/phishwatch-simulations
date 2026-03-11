@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Authorize Application</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+  .box { background: white; border-radius: 12px; padding: 36px; max-width: 440px; width: 90%; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+  .google-logo { font-size: 28px; margin-bottom: 16px; }
+  h2 { font-size: 18px; margin-bottom: 6px; color: #202124; }
+  .app-name { color: #1a73e8; font-weight: 600; }
+  p { color: #5f6368; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+  .code-box { background: #f8f9fa; border: 1px solid #dadce0; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 13px; color: #202124; margin-bottom: 16px; word-break: break-all; }
+  .instruction { background: #e8f0fe; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #1a73e8; margin-bottom: 20px; }
+  .btn { width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: #1a73e8; color: white; }
+  .btn:hover { background: #1557b0; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="google-logo">G</div>
+  <h2>Sign in with <span class="app-name">Google</span></h2>
+  <p>
+    <strong class="app-name">SecureVault App</strong> wants to access your Google account.<br>
+    To complete authorization, copy the code below and paste it into the application.
+  </p>
+  <div class="code-box" id="auth-code">4/0AcvDMrBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+  <div class="instruction">
+    📋 Copy this authorization code and paste it into the localhost callback URL shown in the app.
+  </div>
+  <button class="btn">Copy authorization code</button>
+</div>
+</body>
+</html>

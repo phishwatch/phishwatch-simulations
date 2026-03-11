@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Sign in to continue</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+    height: 100vh; margin: 0;
+    cursor: pointer;
+  }
+  .backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10;
+  }
+  /* DETECTION TARGET: class="fake-browser" + position:fixed + 520x520 */
+  .fake-browser {
+    width: 520px;
+    height: 520px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  /* class contains "chrome" → fake_title_bar signal */
+  .browser-chrome {
+    background: #dee1e6;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dots { display: flex; gap: 5px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; } /* red = close */
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #28c840; }
+  /* Close button with × → fake_window_controls signal */
+  .close-btn {
+    margin-left: auto; background: none; border: none;
+    font-size: 16px; color: #666; cursor: pointer; padding: 0 4px;
+  }
+  /* Address bar with https://accounts.google.com → fake_url_text signal */
+  .address-bar {
+    flex: 1; background: white; border-radius: 4px;
+    padding: 4px 10px; font-size: 12px; color: #333;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .content { padding: 32px 36px 24px; }
+  .g-logo { font-size: 26px; color: #4285f4; margin-bottom: 12px; }
+  h2 { font-size: 20px; color: #202124; margin-bottom: 6px; }
+  .sub { font-size: 14px; color: #5f6368; margin-bottom: 20px; }
+  .account {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border: 1px solid #dadce0;
+    border-radius: 6px; cursor: pointer; margin-bottom: 12px;
+  }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #4285f4; display: flex; align-items: center;
+    justify-content: center; color: white; font-weight: 700;
+  }
+  .name { font-size: 14px; font-weight: 600; color: #202124; }
+  .email { font-size: 12px; color: #5f6368; }
+  /* password field visible but behind the account picker → has_password_field signal */
+  .pw-field {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #dadce0; border-radius: 4px;
+    font-size: 14px; margin-bottom: 8px;
+  }
+  .signin-btn {
+    background: #4285f4; color: white; border: none;
+    padding: 10px 24px; border-radius: 4px; font-size: 14px;
+    cursor: pointer; width: 100%;
+  }
+  .prompt {
+    color: white; font-size: 18px; font-weight: 600;
+    text-align: center;
+  }
+  .prompt small { display: block; margin-top: 8px; font-size: 13px; font-weight: 400; opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<!-- Page background — user sees this first, clicks to trigger the BitB popup -->
+<div class="prompt">
+  Secure Document Viewer
+  <small>Click anywhere to sign in with Google →</small>
+</div>
+
+<script>
+// REAL BitB attack pattern: fake window is DYNAMICALLY INJECTED on user interaction,
+// not present in initial HTML. This tests the MutationObserver detection path.
+// PhishWatch should detect it within 2 seconds of injection via the DOM observer.
+
+document.body.addEventListener('click', function injectBitB() {
+  document.body.removeEventListener('click', injectBitB);
+
+  var backdrop = document.createElement('div');
+  backdrop.className = 'backdrop';
+
+  // This div is the detection target:
+  // - class="fake-browser" → matches updated selector
+  // - position:fixed 520x520 → passes pre-filter
+  // - .browser-chrome inside → fake_title_bar (+25)
+  // - "https://accounts.google.com" text → fake_url_text (+40)
+  // - × button → fake_window_controls (+20)
+  // - input[type=password] → has_password_field (+35)
+  // - "Sign in with" text → contributes to sso_login_form
+  // Total: 120 → HIGH (>80)
+  backdrop.innerHTML = `
+    <div class="fake-browser">
+      <div class="browser-chrome">
+        <div class="dots">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+        </div>
+        <div class="address-bar">
+          <span>🔒</span>
+          <span>https://accounts.google.com</span>
+        </div>
+        <button class="close-btn">×</button>
+      </div>
+      <div class="content">
+        <div class="g-logo">G</div>
+        <h2>Sign in with Google</h2>
+        <p class="sub">to continue to <strong>Secure Document Viewer</strong></p>
+        <div class="account">
+          <div class="avatar">U</div>
+          <div class="account-info">
+            <div class="name">Your Name</div>
+            <div class="email">yourname@gmail.com</div>
+          </div>
+        </div>
+        <input type="password" class="pw-field" placeholder="Enter your password" name="passwd">
+        <button class="signin-btn">Continue</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  // PhishWatch MutationObserver fires, queues BitB scan, should detect within 2s
+});
+</script>
+</body>
+</html>

