@@ -1,4 +1,4 @@
-# phishwatch-simulations
+/# phishwatch-simulations
 
 Harmless browser-based simulations of phishing attack mechanics detected by [PhishWatch](https://phishwatch.io) — a Chrome extension that intercepts browser-native attacks at the moment of user interaction.
 
@@ -24,7 +24,7 @@ This repo lets you:
 No build step, no dependencies. Just a local HTTP server.
 
 ```bash
-git clone https://github.com/deborshiseal/phishwatch-simulations
+git clone https://github.com/phishwatch/phishwatch-simulations
 cd phishwatch-simulations
 python3 -m http.server 8765
 ```
