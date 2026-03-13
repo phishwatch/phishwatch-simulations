@@ -57,7 +57,7 @@ Then open: [http://localhost:8765/index.html](http://localhost:8765/index.html)
 - **Section 3** — Browser-native attack simulations (the files above)
 - **Section 4** — False positive regression tests
 
-Run it locally with the same server command above. Results are saved in `localStorage` so you can resume across sessions.
+Run it locally with the same server command above. Results are saved in sessionStorage so you can resume across sessions.
 
 ---
 
