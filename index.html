@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PhishWatch — Test Harness v3 (Pre-CWS Final)</title>
+<title>PhishWatch — Attack Detection Test Harness</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 
@@ -501,19 +501,18 @@
     <div class="logo-row">
       <div class="logo-mark">🛡️</div>
       <span class="logo-text">PhishWatch</span>
-      <span class="version-pill">v3.0 · Pre-CWS Final</span>
+      <span class="version-pill">v3.0</span>
     </div>
     <h1>Attack Detection<br>Test Harness</h1>
-    <p class="subtitle">// 22 tests · 4 sections · attacks + backend + browser-native + FP regression</p>
+    <p class="subtitle">// 22 tests · 4 sections · client-side · backend-assisted · browser-native · false positive regression</p>
   </div>
 
   <!-- file:// warning -->
   <div class="alert-box alert-file" id="alertFile">
     <span>🚫</span>
     <div>
-      <strong>You're on file:// — extension won't inject.</strong><br>
-      Run: <code>python3 serve_tests.py</code> then open
-      <code>http://localhost:8765/phishwatch_test_harness_v3.html</code>
+      <strong>You're on file:// — the extension won't inject.</strong><br>
+      Serve this directory via a local web server and open it over <code>http://</code>.
     </div>
   </div>
 
@@ -521,7 +520,7 @@
   <div class="alert-box alert-howto">
     <span>📋</span>
     <div>
-      <strong>How Sections 1 &amp; 2 work (FIXED in v3):</strong><br>
+      <strong>How Sections 1 &amp; 2 work:</strong><br>
       Each "Launch" is a real <code>&lt;a&gt;</code> link. Clicking it navigates <em>this tab</em> —
       PhishWatch's click handler intercepts and scans the URL.<br>
       → If PhishWatch fires: you'll see the overlay. Mark ✓ then press <strong>Go back</strong>.<br>
@@ -554,8 +553,7 @@
       <span class="section-title">Client-Side Detection (no backend needed)</span>
     </div>
     <p class="section-desc">
-      URL prescan only — fires instantly on click, before any network call.<br>
-      Open DevTools on <em>this tab</em> to see <code>[PhishWatch]</code> logs.
+      URL prescan only — fires instantly on click, before any network call.
     </p>
 
     <!-- T01 -->
@@ -642,11 +640,10 @@
   <div class="section">
     <div class="section-header">
       <div class="section-num">2</div>
-      <span class="section-title">Backend-Assisted Detection (Render must be running)</span>
+      <span class="section-title">Backend-Assisted Detection</span>
     </div>
     <p class="section-desc">
-      Domain age, VirusTotal NRD, typosquatting via Levenshtein analysis.<br>
-      Requires live Render backend at api.phishwatch.io. g00gle.com fails open (DNS won't resolve) — correct.
+      Domain age, typosquatting, and newly registered domain checks via the PhishWatch backend.
     </p>
 
     <!-- T06 -->
@@ -669,7 +666,7 @@
       <div class="test-info">
         <div class="test-id">T07</div>
         <div class="test-name">Typosquat — Google (fail-open expected)</div>
-        <div class="test-detail">https://g00gle.com/login — DNS won't resolve → fail-open → CORRECT</div>
+        <div class="test-detail">https://g00gle.com/login — unresolvable domain, passes through silently</div>
         <span class="tag tag-silent">EXPECT: SILENT (fail-open)</span>
       </div>
       <a class="launch-link" href="https://g00gle.com/login">Launch →</a>
@@ -684,7 +681,7 @@
       <div class="test-info">
         <div class="test-id">T08</div>
         <div class="test-name">Newly Registered Domain (NRD)</div>
-        <div class="test-detail">https://docspot.app/login — VirusTotal NRD check</div>
+        <div class="test-detail">https://docspot.app/login — newly registered domain</div>
         <span class="tag tag-backend">EXPECT: OVERLAY (backend)</span>
       </div>
       <a class="launch-link" href="https://docspot.app/login">Launch →</a>
@@ -712,8 +709,7 @@
 
     <div class="section-note">
       <strong>Testing instructions:</strong> Each test opens a simulation page in a new tab.<br>
-      → Open DevTools <em>on that tab</em> (Cmd+Opt+J / Ctrl+Shift+J) — not this harness.<br>
-      → Look for <code>[PhishWatch] SECURITY:</code> log entries.<br>
+      → If PhishWatch detects the attack, you'll see an overlay or banner on that tab.<br>
       → Return here and mark pass/fail.<br><br>
       <span class="note-key">ClickFix:</span> click Verify button &nbsp;·&nbsp;
       <span class="note-key">ConsentFix:</span> fires on load &nbsp;·&nbsp;
@@ -826,7 +822,7 @@
     </div>
     <p class="section-desc">
       These links must be <strong>SILENT</strong> — no overlay, no banner, no interception.<br>
-      If PhishWatch fires on any of these, it's a false positive that needs fixing before CWS submission.
+      If PhishWatch fires on any of these, it's a false positive.
     </p>
 
     <div class="section-note">
@@ -958,33 +954,13 @@
   </div>
 
 
-  <!-- ═══ FP NOTE ═══ -->
-  <div class="fp-callout">
-    <strong>⚠️ Known Issue — Excessive Subdomains FP (Tests T15-T17, T22)</strong><br>
-    <code>hasManySubdomains()</code> fires at <code>parts.length &gt;= 4</code>. Legitimate CDN/SaaS URLs
-    like <code>eu-central.storage.cloudconvert.com</code>, <code>cdn.prod.website-files.com</code>,
-    <code>app.eu.pendo.io</code>, and <code>us.i.posthog.com</code> all have 4 parts.<br>
-    <strong>Recommended fix:</strong> Add infra-prefix suppression in <code>hasManySubdomains()</code> —
-    skip if first subdomain matches <code>/^(eu|us|ap|sa|me|af|ca)[-]/</code> (region prefixes)
-    or <code>/^(cdn|api|app|assets|static|uploads|storage|data|smtp)$/</code> (infra prefixes) when exactly 4 parts.
-    This preserves detection on phishing patterns like <code>login.secure.badsite.com</code>.
-  </div>
 
-  <div class="fp-callout" style="border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); color: #fca5a5; margin-top: 12px;">
-    <strong>🐛 Bug — BitB/AiTM Overlay Shows MEDIUM Instead of HIGH</strong><br>
-    <code>showBrowserNativeAttackWarning()</code> hardcodes <code>riskBand = 'medium'</code> for BitB and AiTM
-    attacks regardless of score. Even with score 150 and <code>action: 'BLOCK'</code>, the overlay shows
-    "Proceed with Caution" instead of "Security Warning".<br>
-    <strong>Fix:</strong> Change the BitB/AiTM branch to respect <code>config.action</code>:
-    <code>riskBand = (config.action === 'BLOCK') ? 'high' : 'medium'</code><br>
-    <strong>Test:</strong> After fixing, T11 (BitB) should show HIGH RISK overlay, not MEDIUM.
-  </div>
+
 
 
   <!-- ═══ FOOTER ═══ -->
   <div class="footer">
-    PhishWatch Test Harness v3.0 · March 2026<br>
-    Serve via <code>python3 serve_tests.py</code> on port 8765<br>
+    PhishWatch Attack Detection Test Harness · March 2026<br>
     <a href="https://phishwatch.io">phishwatch.io</a>
   </div>
 
@@ -998,7 +974,7 @@
 
   // ═══ CONSTANTS ═══
   var TOTAL = 22;
-  var STORAGE_KEY = 'pw_test_harness_v3';
+  var STORAGE_KEY = 'pw_test_harness';
 
   // ═══ STATE ═══
   var results = loadState();
@@ -1062,7 +1038,7 @@
     if (marked === TOTAL) {
       if (failed === 0) {
         v.className = 'verdict-banner pass';
-        v.textContent = '✓ ALL ' + TOTAL + ' TESTS PASSED — READY TO SUBMIT TO CHROME WEB STORE';
+        v.textContent = '✓ ALL ' + TOTAL + ' TESTS PASSED';
       } else {
         v.className = 'verdict-banner fail';
         v.textContent = '✗ ' + failed + ' TEST' + (failed > 1 ? 'S' : '') + ' FAILED — DO NOT SUBMIT';
