@@ -1,8 +1,8 @@
 # phishwatch-simulations
 
-Harmless browser-based simulations of phishing attack mechanics detected by [PhishWatch](https://phishwatch.io) — a Chrome extension that intercepts browser-native attacks at the moment of user interaction.
+Harmless browser-based simulations of phishing attack mechanics detected by [PhishWatch](https://phishwatch.io) - a Chrome extension that intercepts browser-native attacks at the moment of user interaction.
 
-These simulations do not steal credentials, make network requests, or execute malicious code. They reproduce only the **structural browser mechanics** that distinguish real attacks — the same signals PhishWatch hooks into.
+These simulations do not steal credentials, make network requests, or execute malicious code. They reproduce only the **structural browser mechanics** that distinguish real attacks - the same signals PhishWatch hooks into.
 
 ---
 
